@@ -1,7 +1,7 @@
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-var cookieParser = require('cookie-parser');
+var cookieParser = require('cookie-parser'); //express generator has already included this
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
@@ -33,28 +33,39 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser('12345-67890-09876-54321')); // passing a secret key as an argument to use signed cookies
 
 function auth(req, res, next) {
-  console.log(req.headers);
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-      const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-  }
+  if (!req.signedCookies.user) { //here signedCookies property of the request object is provided by the cookieparser,it will automatically parse a signed cookie from the request
+      const authHeader = req.headers.authorization;
+      if (!authHeader) {
+          const err = new Error('You are not authenticated!');
+          res.setHeader('WWW-Authenticate', 'Basic');
+          err.status = 401;
+          return next(err);
+      }
 
-  const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-  const user = auth[0];
-  const pass = auth[1];
-  if (user === 'admin' && pass === 'password') {
-      return next(); // authorized
+      const auth = Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
+      const user = auth[0];
+      const pass = auth[1];
+      if (user === 'admin' && pass === 'password') {
+          res.cookie('user', 'admin', {signed: true}); //res.cookie method is a part of express's response objects api & used it to create a new cookie with username 'user','admin'
+                                                        //is a value to store in the name property , 3rd property is optional & used for configuration     
+          return next(); // authorized
+      } else {
+          const err = new Error('You are not authenticated!');
+          res.setHeader('WWW-Authenticate', 'Basic');
+          err.status = 401;
+          return next(err);
+      }
   } else {
-      const err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');      
-      err.status = 401;
-      return next(err);
+      if (req.signedCookies.user === 'admin') {
+          return next();
+      } else {
+          const err = new Error('You are not authenticated!');
+          err.status = 401;
+          return next(err);
+      }
   }
 }
 
