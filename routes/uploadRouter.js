@@ -3,19 +3,19 @@ const authenticate = require('../authenticate');
 const multer = require('multer');
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'public/images');
+    destination: (req, file, cb) => { //cb = callback function
+        cb(null, 'public/images'); //null = there is no error, 'public/images' = path to save the file
     },
     filename: (req, file, cb) => {
-        cb(null, file.originalname)
+        cb(null, file.originalname) // name of the file on server = name of the file on client side
     }
 });
 
 const imageFileFilter = (req, file, cb) => {
     if(!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-        return cb(new Error('You can upload only image files!'), false);
+        return cb(new Error('You can upload only image files!'), false); // false = to reject this file upload
     }
-    cb(null, true);
+    cb(null, true); // true = will tell MULTER to ACCEPT this FILE
 };
 
 const upload = multer({ storage: storage, fileFilter: imageFileFilter});
