@@ -53,15 +53,15 @@ exports.verifyAdmin = (req, res, next) => {
 exports.facebookPassport = passport.use(
     new FacebookTokenStrategy(
         {
-            clientID: config.facebook.clientId,
-            clientSecret: config.facebook.clientSecret
+            clientID: config.facebook.clientId, // app id from the facebook
+            clientSecret: config.facebook.clientSecret // app secret from the facebook
         }, 
-        (accessToken, refreshToken, profile, done) => {
-            User.findOne({facebookId: profile.id}, (err, user) => {
+        (accessToken, refreshToken, profile, done) => { //this is a callback function
+            User.findOne({facebookId: profile.id}, (err, user) => { // will check here if we already have a user account in our mongodb database with this user 
                 if (err) {
                     return done(err, false);
                 }
-                if (!err && user) {
+                if (!err && user) { // will check if there in no error and user alredy existed in the database
                     return done(null, user);
                 } else {
                     user = new User({ username: profile.displayName });
