@@ -7,7 +7,7 @@ const cors = require('./cors');
 const partnerRouter = express.Router();
 
 partnerRouter.route('/')
-.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))//to handle a pre-flight request
+.options(cors.corsWithOptions, (req, res) => res.sendStatus(200))//to handle a pre-flight request,sendStatus=request handler middleware that simply responds with a status code of 200
 .get(cors.cors, (req, res, next) => {
     Partner.find()
     .then(partners => { 
